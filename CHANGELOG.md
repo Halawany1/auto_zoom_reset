@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.3] - 2024-08-19
+
+### Fixed
+- **CRITICAL FIX**: Completely rewrote scaling implementation using Transform.scale
+- Child widget now properly scales as a complete unit (e.g., Container with fixed dimensions)
+- Simplified gesture handling with direct scale factor management
+- Removed complex Matrix4 calculations in favor of simple double scale values
+
+### Changed
+- Replaced ValueNotifier<Matrix4> with simple double _scale state management
+- Improved setState() usage for proper widget rebuilding during zoom
+
 ## [1.0.2] - 2024-08-19
 
 ### Changed

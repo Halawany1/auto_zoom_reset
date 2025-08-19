@@ -5,7 +5,6 @@
 
 A Flutter package that provides an **InteractiveViewer with automatic zoom reset functionality**. Perfect for image galleries, product viewers, and any content that needs pinch-to-zoom with auto-reset behavior.
 
-![Auto Zoom Reset Demo](https://raw.githubusercontent.com/Halawany1/auto_zoom_reset/main/images/demo.png)
 
 *Simple example showing the AutoZoomReset widget in action*
 

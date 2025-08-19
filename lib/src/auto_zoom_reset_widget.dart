@@ -78,19 +78,17 @@ class AutoZoomReset extends StatefulWidget {
 
 class _AutoZoomResetState extends State<AutoZoomReset>
     with TickerProviderStateMixin {
-  late final ValueNotifier<Matrix4> _controller;
   late final AnimationController _resetAnimationController;
-  late Animation<Matrix4> _resetAnimation;
+  late Animation<double> _resetAnimation;
 
-  Matrix4 _initialMatrix = Matrix4.identity();
+  double _scale = 1.0;
+  double _previousScale = 1.0;
   bool _isZoomInProgress = false;
-  double _currentScale = 1.0;
   bool _isResetting = false;
 
   @override
   void initState() {
     super.initState();
-    _controller = ValueNotifier<Matrix4>(Matrix4.identity());
     _resetAnimationController = AnimationController(
       duration: widget.resetDuration,
       vsync: this,
@@ -110,26 +108,24 @@ class _AutoZoomResetState extends State<AutoZoomReset>
 
   void _onScaleStart(ScaleStartDetails details) {
     if (_isResetting) return;
-    _initialMatrix = _controller.value;
+    _previousScale = _scale;
   }
 
   void _onScaleUpdate(ScaleUpdateDetails details) {
     if (_isResetting) return;
 
-    // Calculate the new transformation matrix with proper scaling
-    final double scale = details.scale.clamp(widget.minScale, widget.maxScale);
-    final Matrix4 matrix = Matrix4.identity()..scale(scale);
-
-    _controller.value = matrix;
-    _currentScale = scale;
+    setState(() {
+      _scale = (_previousScale * details.scale)
+          .clamp(widget.minScale, widget.maxScale);
+    });
 
     // Trigger zoom start callback
-    if (scale > 1.01 && !_isZoomInProgress) {
+    if (_scale > 1.01 && !_isZoomInProgress) {
       _isZoomInProgress = true;
       widget.onZoomStart?.call();
     }
 
-    widget.onScaleChanged?.call(scale);
+    widget.onScaleChanged?.call(_scale);
   }
 
   void _onScaleEnd(ScaleEndDetails details) {
@@ -155,9 +151,9 @@ class _AutoZoomResetState extends State<AutoZoomReset>
     _isResetting = true;
     widget.onResetStart?.call();
 
-    _resetAnimation = Matrix4Tween(
-      begin: _controller.value,
-      end: _initialMatrix,
+    _resetAnimation = Tween<double>(
+      begin: _scale,
+      end: 1.0,
     ).animate(CurvedAnimation(
       parent: _resetAnimationController,
       curve: widget.resetCurve,
@@ -168,15 +164,19 @@ class _AutoZoomResetState extends State<AutoZoomReset>
 
   void _onResetAnimationUpdate() {
     if (mounted) {
-      _controller.value = _resetAnimation.value;
+      setState(() {
+        _scale = _resetAnimation.value;
+      });
     }
   }
 
   void _onResetAnimationStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      _isZoomInProgress = false;
-      _isResetting = false;
-      _currentScale = 1.0;
+      setState(() {
+        _isZoomInProgress = false;
+        _isResetting = false;
+        _scale = 1.0;
+      });
       widget.onZoomEnd?.call();
       widget.onResetComplete?.call();
     }
@@ -190,7 +190,7 @@ class _AutoZoomResetState extends State<AutoZoomReset>
   }
 
   /// Get the current scale factor.
-  double get currentScale => _currentScale;
+  double get currentScale => _scale;
 
   /// Check if zoom is currently in progress.
   bool get isZoomed => _isZoomInProgress;
@@ -201,9 +201,8 @@ class _AutoZoomResetState extends State<AutoZoomReset>
       onScaleStart: widget.zoomEnabled ? _onScaleStart : null,
       onScaleUpdate: widget.zoomEnabled ? _onScaleUpdate : null,
       onScaleEnd: widget.zoomEnabled ? _onScaleEnd : null,
-      child: Transform(
-        transform: _controller.value,
-        alignment: Alignment.center,
+      child: Transform.scale(
+        scale: _scale,
         child: widget.child,
       ),
     );
@@ -224,7 +223,7 @@ class _AutoZoomResetState extends State<AutoZoomReset>
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
-                  '${(_currentScale * 100).toInt()}%',
+                  '${(_scale * 100).toInt()}%',
                   style: const TextStyle(
                     color: Colors.white,
                     fontSize: 12,
@@ -243,7 +242,6 @@ class _AutoZoomResetState extends State<AutoZoomReset>
   @override
   void dispose() {
     _resetAnimationController.dispose();
-    _controller.dispose();
     super.dispose();
   }
 }
