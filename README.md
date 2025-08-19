@@ -7,7 +7,9 @@ A Flutter package that provides an **InteractiveViewer with automatic zoom reset
 
 
 *Simple example showing the AutoZoomReset widget in action*
-![](1_greY-Kmi3HgcEH_ilBQPGA.gif)
+<p align="left">
+  <img src="1_greY-Kmi3HgcEH_ilBQPGA.gif" alt="Auto Zoom Reset Demo" />
+</p>
 
 ## ✨ Features
 
