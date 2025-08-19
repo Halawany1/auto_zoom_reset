@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.2] - 2024-08-19
+
+### Changed
+- **BREAKING**: Replaced InteractiveViewer with GestureDetector + Transform approach
+- Child widget is now scaled as a complete unit, not just its internal contents
+- Zoom now applies to the entire child widget uniformly
+
+### Fixed
+- Fixed zoom behavior to scale the child widget itself rather than its contents
+- Improved gesture handling for more intuitive zoom experience
+
 ## [1.0.1] - 2024-08-19
 
 ### Changed

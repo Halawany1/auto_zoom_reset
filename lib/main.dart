@@ -27,9 +27,6 @@ class ExampleApp extends StatelessWidget {
               width: 200,
               height: 200,
               color: Colors.orange,
-              child: Center(
-                child: Text('Pinch to Zoom!'),
-              ),
             ),
           ),
         ),

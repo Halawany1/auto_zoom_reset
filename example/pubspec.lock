@@ -12,9 +12,10 @@ packages:
   auto_zoom_reset:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
+      name: auto_zoom_reset
+      sha256: "84f8bf467e634082cc9e1547f992cb7dd15a7ef697db5fc67816284c0c8e82df"
+      url: "https://pub.dev"
+    source: hosted
     version: "1.0.0"
   boolean_selector:
     dependency: transitive

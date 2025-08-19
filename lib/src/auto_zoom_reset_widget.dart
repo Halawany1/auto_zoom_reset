@@ -78,7 +78,7 @@ class AutoZoomReset extends StatefulWidget {
 
 class _AutoZoomResetState extends State<AutoZoomReset>
     with TickerProviderStateMixin {
-  late final TransformationController _controller;
+  late final ValueNotifier<Matrix4> _controller;
   late final AnimationController _resetAnimationController;
   late Animation<Matrix4> _resetAnimation;
 
@@ -90,7 +90,7 @@ class _AutoZoomResetState extends State<AutoZoomReset>
   @override
   void initState() {
     super.initState();
-    _controller = TransformationController();
+    _controller = ValueNotifier<Matrix4>(Matrix4.identity());
     _resetAnimationController = AnimationController(
       duration: widget.resetDuration,
       vsync: this,
@@ -108,15 +108,19 @@ class _AutoZoomResetState extends State<AutoZoomReset>
     }
   }
 
-  void _onInteractionStart(ScaleStartDetails details) {
+  void _onScaleStart(ScaleStartDetails details) {
     if (_isResetting) return;
     _initialMatrix = _controller.value;
   }
 
-  void _onInteractionUpdate(ScaleUpdateDetails details) {
+  void _onScaleUpdate(ScaleUpdateDetails details) {
     if (_isResetting) return;
 
-    final scale = _controller.value.getMaxScaleOnAxis();
+    // Calculate the new transformation matrix with proper scaling
+    final double scale = details.scale.clamp(widget.minScale, widget.maxScale);
+    final Matrix4 matrix = Matrix4.identity()..scale(scale);
+
+    _controller.value = matrix;
     _currentScale = scale;
 
     // Trigger zoom start callback
@@ -128,13 +132,9 @@ class _AutoZoomResetState extends State<AutoZoomReset>
     widget.onScaleChanged?.call(scale);
   }
 
-  void _onInteractionEnd(ScaleEndDetails details) {
+  void _onScaleEnd(ScaleEndDetails details) {
     if (_isResetting || !_isZoomInProgress) return;
-
-    // Only reset if we're not in a multi-finger gesture
-    if (details.pointerCount == 0) {
-      _scheduleReset();
-    }
+    _scheduleReset();
   }
 
   void _scheduleReset() {
@@ -197,17 +197,15 @@ class _AutoZoomResetState extends State<AutoZoomReset>
 
   @override
   Widget build(BuildContext context) {
-    Widget child = InteractiveViewer(
-      transformationController: _controller,
-      onInteractionStart: widget.zoomEnabled ? _onInteractionStart : null,
-      onInteractionUpdate: widget.zoomEnabled ? _onInteractionUpdate : null,
-      onInteractionEnd: widget.zoomEnabled ? _onInteractionEnd : null,
-      panEnabled: widget.zoomEnabled,
-      scaleEnabled: widget.zoomEnabled,
-      minScale: widget.minScale,
-      maxScale: widget.maxScale,
-      constrained: widget.constrained,
-      child: widget.child,
+    Widget child = GestureDetector(
+      onScaleStart: widget.zoomEnabled ? _onScaleStart : null,
+      onScaleUpdate: widget.zoomEnabled ? _onScaleUpdate : null,
+      onScaleEnd: widget.zoomEnabled ? _onScaleEnd : null,
+      child: Transform(
+        transform: _controller.value,
+        alignment: Alignment.center,
+        child: widget.child,
+      ),
     );
 
     // Add zoom indicator overlay if enabled
